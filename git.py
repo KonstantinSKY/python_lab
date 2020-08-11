@@ -7,6 +7,7 @@ def bash(command):
 
 
 print(" -=GIT commit help=-")
+
 directory = os.path.abspath(os.curdir)
 print("Path for Git:", directory)
 print("-"*100)
@@ -18,7 +19,7 @@ if input("Press Enter for continue 'git add *'  or Any key for exit") != "":
 bash('git add *')
 bash('git status')
 
-print("Commiting and Pushing")
+print("Committing and Pushing")
 msg = input("Enter commit message 'git commit -m' \n")
 if msg == "":
     bash(f'git commit')
@@ -27,6 +28,7 @@ else:
 
 bash('git push')
 bash('git status')
+
 
 
 
