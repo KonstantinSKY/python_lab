@@ -1,5 +1,5 @@
 # Creating socket client with timeout and exceptions
-
+import socket
 with socket.create_connection(("127.0.0.1", 10001), 5) as sock:
     # set socket read timeout
     sock.settimeout(2)
