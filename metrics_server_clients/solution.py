@@ -4,65 +4,73 @@ import time
 
 
 class ClientError(Exception):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, msg, err=None):
+        self.msg = msg
+        self.err = err
 
 
 class Client:
 
-    def __init__(self, ip_addr, port, timeout=None):
-        self.ip_addr = ip_addr
+    def __init__(self, host, port, timeout=None):
+        self.host = host
         self.port = port
         self.timeout = timeout
-        self.sock = socket.create_connection((ip_addr, port))
-        self.sock.settimeout(timeout)
-        print(f'socket is ready: {self.sock}')
+
+        try:
+            self.conn = socket.create_connection((host, port), timeout)
+        except socket.error as err:
+            raise ClientError("Cannot create connection", err)
+
+    def _read(self):
+        data = b""
+
+        while not data.endswith(b"\n\n"):
+            try:
+                data += self.conn.recv(1024)
+            except socket.error as err:
+                raise ClientError("Error reading data from socket", err)
+
+        return data.decode('utf-8')
+
+    def _send(self, data):
+        try:
+            self.conn.sendall(data)
+        except socket.error as err:
+            raise ClientError("Error sending data to server", err)
 
     def get(self, metric_name):
-        print(f'this is GET, metric name {metric_name}')
-        try:
-            self.sock.sendall(f"get {metric_name}\n".encode("utf8"))
-            data = self.sock.recv(1024).decode()
-        except ClientError:
-            raise ClientError()
-        data_list = data.rsplit("\n")
+        self._send(f"get {metric_name}\n".encode("utf8"))
+        raw_data = self._read()
+        data_list = raw_data.rsplit("\n")
 
-        if data_list[0] == 'error':
-            raise ClientError()
-        print(f"Data got OK {data}")
-        print(f"Data_list OK {data_list[0]}")
+        if data_list[0] != 'ok':
+            raise ClientError('Server returns an error')
         del data_list[0]
-        print(f"Data_list {data_list}")
         data_one = [data.split(" ") for data in data_list if data != '']
-        res = {}
+        data_res = {}
         try:
             for data in data_one:
-                if data[0] not in res:
-                    res[data[0]] = []
-                res[data[0]].append((int(data[2]), float(data[1])))
-        except Exception:
-            raise ClientError()
-        [value.sort() for key, value in res.items()]
-        print(res)
-        return res
+                if data[0] not in data_res:
+                    data_res[data[0]] = []
+                data_res[data[0]].append((int(data[2]), float(data[1])))
+        except Exception as err:
+            raise ClientError('Server returned invalid data', err)
+        [value.sort() for key, value in data_res.items()]
+
+        return data_res
 
     def put(self, metric_name, value, timestamp=None):
-        print(f'This is PUT metric = {metric_name}, value = {value}, ts = {timestamp}')
-        if timestamp is None:
-            timestamp = time.time()
-        else:
-            try:
-                timestamp = int(timestamp)
-            except Exception:
-                pass
+        timestamp = timestamp or int(time.time())
+
+        self._send(f"put {metric_name} {value} {timestamp}\n".encode("utf8"))
+        raw_data = self._read()
+
+        if raw_data == 'ok\n\n':
+            return
+        raise ClientError('Server returns an error')
+
+    def close(self):
         try:
-            self.sock.sendall(f"put {metric_name} {value} {timestamp}\n".encode("utf8"))
-            data = self.sock.recv(1024).decode()
-        except ClientError():
-            raise ClientError
-
-        data_list = data.rsplit("\n")
-        if data_list[0] == 'error':
-            raise ClientError()
-
-        print(f"Put response: {data}")
+            self.conn.close()
+        except socket.error as err:
+            raise ClientError("Error. Do not close the connection", err)
