@@ -48,6 +48,7 @@ class Client:
         del data_list[0]
         data_one = [data.split(" ") for data in data_list if data != '']
         data_res = {}
+
         try:
             for data in data_one:
                 if data[0] not in data_res:
