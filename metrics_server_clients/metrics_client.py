@@ -44,6 +44,7 @@ class Client:
         data_list = raw_data.rsplit("\n")
 
         if data_list[0] != 'ok':
+            print(data_list[0])
             raise ClientError('Server returns an error')
         del data_list[0]
         data_one = [data.split(" ") for data in data_list if data != '']
@@ -65,7 +66,7 @@ class Client:
 
         self._send(f"put {metric_name} {value} {timestamp}\n".encode("utf8"))
         raw_data = self._read()
-
+        print(raw_data)
         if raw_data == 'ok\n\n':
             return
         raise ClientError('Server returns an error')
