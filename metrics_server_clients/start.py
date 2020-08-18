@@ -1,4 +1,4 @@
-from solution import Client
+from metrics_client import Client
 
 client = Client("127.0.0.1", 8888, timeout=15)
 

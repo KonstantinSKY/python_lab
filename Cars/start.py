@@ -1,4 +1,4 @@
-from solution import *
+from cars import *
 
 car = Car('Bugatti Veyron', 'bugatti.png', '0.312', '2')
 print(car.car_type, car.brand, car.photo_file_name, car.carrying,

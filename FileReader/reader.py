@@ -1,4 +1,4 @@
-from solution import FileReader
+from filereader import FileReader
 
 reader = FileReader('not_exist_file.txt')
 text = reader.read()

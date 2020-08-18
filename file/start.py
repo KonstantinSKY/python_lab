@@ -1,5 +1,5 @@
 import os.path
-from solution import File
+from file import File
 
 
 path_to_file = 'some_filename'
