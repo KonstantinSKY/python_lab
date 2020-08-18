@@ -1,4 +1,4 @@
-# asyncio, tcp клиент
+# asyncio, tcp client
 
 import asyncio
 
