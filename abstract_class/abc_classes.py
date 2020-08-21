@@ -6,32 +6,26 @@ class Base(ABC):
     def __init__(self, data, result):
         self.data = data
         self.result = result
-    pass
 
-    @abstractmethod
     def get_answer(self):
         return [int(x >= 0.5) for x in self.data]
-
-
-class A(Base):
-    def __init__(self, data, result):
-        super().__init__(data, result)
-
-    def get_answer(self):
-        return super().get_answer()
 
     def get_score(self):
         ans = self.get_answer()
         return sum([int(x == y) for (x, y) in zip(ans, self.result)]) / len(ans)
 
+    @abstractmethod
     def get_loss(self):
-        return sum(
-            [(x - y) * (x - y) for (x, y) in zip(self.data, self.result)])
+        pass
+
+
+class A(Base):
+
+    def get_loss(self):
+        return sum([(x - y) * (x - y) for x, y in zip(self.data, self.result)])
 
 
 class B(Base):
-    def __init__(self, data, result):
-        super().__init__(data, result)
 
     def get_loss(self):
         return -sum([
@@ -56,12 +50,6 @@ class B(Base):
 
 
 class C(Base):
-    def __init__(self, data, result):
-        super().__init__(data, result)
-
-    def get_score(self):
-        ans = self.get_answer()
-        return sum([int(x == y) for (x, y) in zip(ans, self.result)]) / len(ans)
 
     def get_loss(self):
         return sum([abs(x - y) for (x, y) in zip(self.data, self.result)])
