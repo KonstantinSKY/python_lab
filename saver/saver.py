@@ -8,6 +8,40 @@ import math
 SCREEN_DIM = (800, 600)
 
 
+class Vec2d:
+    points_new = []
+    diameter = 3
+    color = (255, 255, 255)
+
+    def __init__(self, point, speed):
+        self.point = point
+        self.speed = speed
+        self.x_point = point[0]
+        self.y_point = point[1]
+        self.x_speed = speed[0]
+        self.y_speed = speed[1]
+        print(self.y_point)
+        Vec2d.points_new.append(self)
+
+    def add(self):
+        self.x_point += self.x_speed
+        self.y_point += self.y_speed
+        if self.x_point > SCREEN_DIM[0] or self.x_point < 0:
+            self.x_speed *= -1
+        if self.y_point > SCREEN_DIM[1] or self.y_point < 0:
+            self.y_speed *= -1
+
+    @classmethod
+    def set_points(cls):
+        """функция перерасчета координат опорных точек"""
+        [point.add() for point in cls.points_new]
+
+    @classmethod
+    def draw_points(cls, display_obj):
+        for point in cls.points_new:
+            pygame.draw.circle(display_obj, cls.color, (int(point.x_point), int(point.y_point)), cls.diameter)
+
+
 # =======================================================================================
 # Функции для работы с векторами
 # =======================================================================================
@@ -160,15 +194,23 @@ if __name__ == "__main__":
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 points.append(event.pos)
+                print(event.pos)
                 speeds.append((random.random() * 2, random.random() * 2))
+
+                Vec2d(event.pos, (random.random() * 2, random.random() * 2))
+                print(Vec2d.points_new)
 
         gameDisplay.fill((0, 0, 0))
         hue = (hue + 1) % 360
         color.hsla = (hue, 100, 50, 100)
-        draw_points(points)
+        # draw_points(points)
+        Vec2d.draw_points(gameDisplay)
+
         draw_points(get_knot(points, steps), "line", 3, color)
         if not pause:
-            set_points(points, speeds)
+
+            # set_points(points, speeds)  # перерисовываем точки
+            Vec2d.set_points()
         if show_help:
             draw_help()
 
