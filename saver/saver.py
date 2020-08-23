@@ -9,37 +9,56 @@ SCREEN_DIM = (800, 600)
 
 
 class Vec2d:
+    def __init__(self, point):
+        self.point = list(point)
+
+    def __add__(self, other):
+        return Vec2d((self.point[0] + other.point[0], self.point[1] + other.point[1]))
+
+
+class Point:
     points_new = []
     diameter = 3
     color = (255, 255, 255)
 
-    def __init__(self, point, speed):
-        self.point = point
-        self.speed = speed
-        self.x_point = point[0]
-        self.y_point = point[1]
-        self.x_speed = speed[0]
-        self.y_speed = speed[1]
-        print(self.y_point)
-        Vec2d.points_new.append(self)
+    def __init__(self, point):
+        self.point = Vec2d(point)
+        self.speed = Vec2d((random.random(), random.random()))
+        self.x = self.point.point[0]
+        self.y = self.point.point[1]
+        Point.points_new.append(self)
+        print(Point.points_new)
 
-    def add(self):
-        self.x_point += self.x_speed
-        self.y_point += self.y_speed
-        if self.x_point > SCREEN_DIM[0] or self.x_point < 0:
-            self.x_speed *= -1
-        if self.y_point > SCREEN_DIM[1] or self.y_point < 0:
-            self.y_speed *= -1
+    def set(self):
+        self.point += self.speed
+        self.x = self.point.point[0]
+        self.y = self.point.point[1]
+
+        if self.x > SCREEN_DIM[0] or self.x < 0:
+            self.speed.point[0] *= -1
+        if self.y > SCREEN_DIM[1] or self.y < 0:
+            self.speed.point[1] *= -1
 
     @classmethod
     def set_points(cls):
         """функция перерасчета координат опорных точек"""
-        [point.add() for point in cls.points_new]
+        [point.set() for point in cls.points_new]
 
     @classmethod
     def draw_points(cls, display_obj):
         for point in cls.points_new:
-            pygame.draw.circle(display_obj, cls.color, (int(point.x_point), int(point.y_point)), cls.diameter)
+            pygame.draw.circle(display_obj, cls.color, (int(point.x), int(point.y)), cls.diameter)
+
+
+# class Polyline:
+#
+#     def __int__(self, point_1, point_2):
+#         pass
+#
+#     @classmethod
+#     def draw_lines(cls, display_obj):
+#         for point in cls.points_new:
+#             pygame.draw.circle(display_obj, cls.color, (int(point.x_point), int(point.y_point)), cls.diameter)
 
 
 # =======================================================================================
@@ -145,14 +164,14 @@ def get_knot(points, count):
     return res
 
 
-def set_points(points, speeds):
-    """функция перерасчета координат опорных точек"""
-    for p in range(len(points)):
-        points[p] = add(points[p], speeds[p])
-        if points[p][0] > SCREEN_DIM[0] or points[p][0] < 0:
-            speeds[p] = (- speeds[p][0], speeds[p][1])
-        if points[p][1] > SCREEN_DIM[1] or points[p][1] < 0:
-            speeds[p] = (speeds[p][0], -speeds[p][1])
+# def set_points(points, speeds):
+#     """функция перерасчета координат опорных точек"""
+#     for p in range(len(points)):
+#         points[p] = add(points[p], speeds[p])
+#         if points[p][0] > SCREEN_DIM[0] or points[p][0] < 0:
+#             speeds[p] = (- speeds[p][0], speeds[p][1])
+#         if points[p][1] > SCREEN_DIM[1] or points[p][1] < 0:
+#             speeds[p] = (speeds[p][0], -speeds[p][1])
 
 
 # =======================================================================================
@@ -194,23 +213,22 @@ if __name__ == "__main__":
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 points.append(event.pos)
-                print(event.pos)
-                speeds.append((random.random() * 2, random.random() * 2))
+                # print(event.pos)
+                #speeds.append((random.random() * 2, random.random() * 2))
 
-                Vec2d(event.pos, (random.random() * 2, random.random() * 2))
-                print(Vec2d.points_new)
+                Point(event.pos)
+                #print(Vec2d.points_new)
 
         gameDisplay.fill((0, 0, 0))
         hue = (hue + 1) % 360
         color.hsla = (hue, 100, 50, 100)
         # draw_points(points)
-        Vec2d.draw_points(gameDisplay)
+        Point.draw_points(gameDisplay)
 
         draw_points(get_knot(points, steps), "line", 3, color)
         if not pause:
-
             # set_points(points, speeds)  # перерисовываем точки
-            Vec2d.set_points()
+            Point.set_points()
         if show_help:
             draw_help()
 
