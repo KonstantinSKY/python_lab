@@ -15,3 +15,6 @@ class Account:
 
     def __init__(self, commission):
         self.commission = commission
+
+
+print(Account(12).)

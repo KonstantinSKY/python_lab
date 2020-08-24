@@ -4,6 +4,9 @@
 import pygame
 import random
 import math
+from datetime import datetime
+import time
+from time import sleep
 
 SCREEN_DIM = (800, 600)
 
@@ -11,57 +14,119 @@ SCREEN_DIM = (800, 600)
 class Vec2d:
     def __init__(self, point):
         self.point = list(point)
+        self.x = self.point[0]
+        self.y = self.point[1]
 
     def __add__(self, other):
         return Vec2d((self.point[0] + other.point[0], self.point[1] + other.point[1]))
 
+    def __mul__(self, other):
+        return Vec2d((self.point[0] * other, self.point[1] * other))
 
-class Point:
-    points_new = []
+    def int_pair(self):
+        return self.x, self.y
+
+
+class Point(Vec2d):
+    points = []
     diameter = 3
     color = (255, 255, 255)
 
     def __init__(self, point):
-        self.point = Vec2d(point)
-        self.speed = Vec2d((random.random(), random.random()))
-        self.x = self.point.point[0]
-        self.y = self.point.point[1]
-        Point.points_new.append(self)
-        print(Point.points_new)
+        super().__init__(point)
+        self.speed = Vec2d((random.random() * 2, random.random() * 2))
+        print(type(self.int_pair()))
+        Point.points.append(self)
+
+
+    def change_add(self, other):
+        self.x += other.x
+        self.y += other.y
+        self.point = [self.x, self.y]
 
     def set(self):
-        self.point += self.speed
-        self.x = self.point.point[0]
-        self.y = self.point.point[1]
-
+        self.change_add(self.speed)
         if self.x > SCREEN_DIM[0] or self.x < 0:
-            self.speed.point[0] *= -1
+            self.speed.x *= -1
         if self.y > SCREEN_DIM[1] or self.y < 0:
-            self.speed.point[1] *= -1
+            self.speed.y *= -1
 
     @classmethod
     def set_points(cls):
         """функция перерасчета координат опорных точек"""
-        [point.set() for point in cls.points_new]
+        [point.set() for point in cls.points]
 
     @classmethod
     def draw_points(cls, display_obj):
-        for point in cls.points_new:
+        for point in cls.points:
             pygame.draw.circle(display_obj, cls.color, (int(point.x), int(point.y)), cls.diameter)
 
 
-# class Polyline:
-#
-#     def __int__(self, point_1, point_2):
-#         pass
-#
-#     @classmethod
-#     def draw_lines(cls, display_obj):
-#         for point in cls.points_new:
-#             pygame.draw.circle(display_obj, cls.color, (int(point.x_point), int(point.y_point)), cls.diameter)
+    @classmethod
+    def get_points_list(cls):
+        return [(point.x, point.y) for point in cls.points]
 
 
-# =======================================================================================
+class Polyline:
+    width = 3
+    color = (255, 255, 255)
+
+    def __init__(self):
+        self.points = []
+
+
+    def draw_lines(self, display_obj):
+        pts = self.points
+
+        for idx in range(-1, len(pts) - 1):
+            pygame.draw.line(display_obj, color, (int(pts[idx].x), int(pts[idx].y)),
+                             (int(pts[idx + 1].x), int(pts[idx + 1].y)), Polyline.width)
+
+
+class Knot(Polyline):
+    steps = 35
+    alpha = 1 / steps
+
+    def __init__(self):
+        super().__init__()
+        self.smooth_points = []
+
+    def _get_point(self, alpha, deg=None):
+
+        if deg is None:
+            deg = len(self.smooth_points) - 1
+        if deg == 0:
+            return self.smooth_points[0]
+
+        return (self.smooth_points[deg] * alpha) + (self._get_point(alpha, deg - 1) * (1 - alpha))
+
+    def _get_points(self):
+        start_time = datetime.now()
+        res = []
+
+        for i in range(Knot.steps):
+            res.append(self._get_point(i * Knot.alpha))
+        print("_get_points", datetime.now() - start_time)
+        return res
+
+    def get_knot(self, b_p):
+        print("points: ", len(b_p))
+        start_time = datetime.now()
+
+        self.points = []
+
+        if len(b_p) < 3:
+            return
+
+        for idx in range(-2, len(b_p) - 2):
+            self.smooth_points = [(b_p[idx] + b_p[idx+1]) * 0.5, b_p[idx+1], (b_p[idx+1] + b_p[idx+2]) * 0.5]
+            self.points.extend(self._get_points())
+
+        print("Full knot", datetime.now() - start_time)
+
+
+
+# ===========1============================================================================
 # Функции для работы с векторами
 # =======================================================================================
 
@@ -134,34 +199,36 @@ def draw_help():
 # =======================================================================================
 # Функции, отвечающие за расчет сглаживания ломаной
 # =======================================================================================
-def get_point(points, alpha, deg=None):
-    if deg is None:
-        deg = len(points) - 1
-    if deg == 0:
-        return points[0]
-    return add(mul(points[deg], alpha), mul(get_point(points, alpha, deg - 1), 1 - alpha))
+# def get_point(points, alpha, deg=None):
+#     if deg is None:
+#         deg = len(points) - 1
+#     if deg == 0:
+#         return points[0]
+#     return add(mul(points[deg], alpha), mul(get_point(points, alpha, deg - 1), 1 - alpha))
+#
+#
+# def get_points(base_points, count):
+#     alpha = 1 / count
+#     res = []
+#     for i in range(count):
+#         res.append(get_point(base_points, i * alpha))
+#     return res
 
 
-def get_points(base_points, count):
-    alpha = 1 / count
-    res = []
-    for i in range(count):
-        res.append(get_point(base_points, i * alpha))
-    return res
-
-
-def get_knot(points, count):
-    if len(points) < 3:
-        return []
-    res = []
-    for i in range(-2, len(points) - 2):
-        ptn = []
-        ptn.append(mul(add(points[i], points[i + 1]), 0.5))
-        ptn.append(points[i + 1])
-        ptn.append(mul(add(points[i + 1], points[i + 2]), 0.5))
-
-        res.extend(get_points(ptn, count))
-    return res
+# def get_knot(points, count):
+#     if len(points) < 3:
+#         return []
+#     res = []
+#     #print(points)
+#     for i in range(-2, len(points) - 2):
+#         ptn = []
+#         ptn.append(mul(add(points[i], points[i + 1]), 0.5))
+#         ptn.append(points[i + 1])
+#         ptn.append(mul(add(points[i + 1], points[i + 2]), 0.5))
+#        # print(ptn)
+#         # sleep(1)
+#         res.extend(get_points(ptn, count))
+#     return res
 
 
 # def set_points(points, speeds):
@@ -191,8 +258,9 @@ if __name__ == "__main__":
 
     hue = 0
     color = pygame.Color(0)
-
+    K = Knot()
     while working:
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 working = False
@@ -212,23 +280,29 @@ if __name__ == "__main__":
                     steps -= 1 if steps > 1 else 0
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                points.append(event.pos)
-                # print(event.pos)
-                #speeds.append((random.random() * 2, random.random() * 2))
-
+                gameDisplay.fill((0, 0, 0))
                 Point(event.pos)
-                #print(Vec2d.points_new)
+                Point.draw_points(gameDisplay)
+                K.get_knot(Point.points)
+                Point.draw_points(gameDisplay)
 
-        gameDisplay.fill((0, 0, 0))
-        hue = (hue + 1) % 360
-        color.hsla = (hue, 100, 50, 100)
+        if pause:
+            hue = (hue + 1) % 360
+            color.hsla = (hue, 100, 50, 100)
+            K.draw_lines(gameDisplay)
         # draw_points(points)
-        Point.draw_points(gameDisplay)
-
-        draw_points(get_knot(points, steps), "line", 3, color)
+      #  Point.draw_points(gameDisplay)
+      #  K.draw_lines(gameDisplay)
+        # draw_points(get_knot(Point.get_points_list(), steps), "line", 3, color)
         if not pause:
-            # set_points(points, speeds)  # перерисовываем точки
+            gameDisplay.fill((0, 0, 0))
+            hue = (hue + 1) % 360
+            color.hsla = (hue, 100, 50, 100)
+            Point.draw_points(gameDisplay)
             Point.set_points()
+            K.get_knot(Point.points)
+            K.draw_lines(gameDisplay)
+
         if show_help:
             draw_help()
 
