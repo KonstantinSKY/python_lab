@@ -279,12 +279,15 @@ if __name__ == "__main__":
                 if event.key == pygame.K_KP_MINUS:
                     steps -= 1 if steps > 1 else 0
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 gameDisplay.fill((0, 0, 0))
                 Point(event.pos)
                 Point.draw_points(gameDisplay)
                 K.get_knot(Point.points)
                 Point.draw_points(gameDisplay)
+
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
+                K.
 
         if pause:
             hue = (hue + 1) % 360
