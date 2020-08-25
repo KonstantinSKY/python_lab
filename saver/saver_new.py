@@ -137,7 +137,6 @@ def draw_help():
     data.append(["", ""])
     data.append([str(steps), "Current points"])
 
-
     pygame.draw.lines(gameDisplay, (255, 50, 50, 255), True, [
         (0, 0), (800, 0), (800, 600), (0, 600)], 5)
 
@@ -148,76 +147,191 @@ def draw_help():
             text[1], True, (128, 128, 255)), (200, 100 + 30 * i))
 
 
+class Game:
+
+    def __init__(self, caption):
+        self.knots = [Knot()]
+        self.working_knot = self.knots[0]
+        self.working = True
+        self.show_help = False
+        self.pause = True
+        self.steps = 35
+        self.hue = 0
+        self.gameDisplay = pygame.display.set_mode(SCREEN_DIM)
+        pygame.display.set_caption(caption)
+        self.color = pygame.Color(0)
+
+    def work(self):
+        while self.working:
+            self._event()
+
+            if self.pause:
+                self._stop()
+            else:
+                self._run()
+
+            if self.show_help:
+                self._show_help()
+
+            pygame.display.flip()
+
+
+    def _event(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.working = False
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self.working = False
+
+                if event.key == pygame.K_r:
+                    pass
+                if event.key == pygame.K_p:
+                    self.pause = not self.pause
+                if event.key == pygame.K_KP_PLUS:
+                    self.steps += 1
+
+                if event.key == pygame.K_F1:
+                    self.show_help = not self.show_help
+
+                if event.key == pygame.K_KP_MINUS:
+                    self.steps -= 1 if self.steps > 1 else 0
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                self.gameDisplay.fill((0, 0, 0))
+
+                if event.button == 1:
+                    self.working_knot.add_base_point(event.pos)
+
+                if event.button == 3 and self.pause:
+                    self.working_knot.del_base_point(event.pos)
+
+                self._draw()
+
+    def _draw(self):
+        self.working_knot.draw_points(self.gameDisplay)
+        self.working_knot.get_knot()
+        self.working_knot.draw_lines(self.gameDisplay, self.color)
+
+    def _colorize(self):
+        self.hue = (self.hue + 1) % 360
+        self.color.hsla = (self.hue, 100, 50, 100)
+
+    def _stop(self):
+        self._colorize()
+        self.working_knot.draw_lines(self.gameDisplay, self.color)
+
+    def _run(self):
+        self.gameDisplay.fill((0, 0, 0))
+        self._colorize()
+
+        self.working_knot.set_points()
+        self._draw()
+
+    def add_knot(self):
+        pass
+
+    def _show_help(self):
+        """ Method отрисовки экрана справки программы"""
+        self.gameDisplay.fill((50, 50, 50))
+        font1 = pygame.font.SysFont("courier", 24)
+        font2 = pygame.font.SysFont("serif", 24)
+        menu = (("F1", "Show Help"),
+                ("R", "Restart"),
+                ("P", "Pause/Play"),
+                ("Num+", "More points"),
+                ("Num-", "Less points"),
+                ("", ""),
+                (str(self.steps), "Current points"))
+
+        pygame.draw.lines(self.gameDisplay, (255, 50, 50, 255), True, [
+            (0, 0), (800, 0), (800, 600), (0, 600)], 5)
+
+        for i, text in enumerate(menu):
+            self.gameDisplay.blit(font1.render(
+                text[0], True, (128, 128, 255)), (100, 100 + 30 * i))
+            self.gameDisplay.blit(font2.render(
+                text[1], True, (128, 128, 255)), (200, 100 + 30 * i))
+
+
 # =======================================================================================
 # Основная программа
 # =======================================================================================
 if __name__ == "__main__":
-
     pygame.init()
-    gameDisplay = pygame.display.set_mode(SCREEN_DIM)
-    pygame.display.set_caption("MyScreenSaver")
+    game = Game("My New Screen Saver")
+    game.work()
 
-    steps = 35
-    working = True
-    points = []
-    speeds = []
-    show_help = False
-    pause = True
-
-    hue = 0
-    color = pygame.Color(0)
-    K = Knot()
-    while working:
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                working = False
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    working = False
-                if event.key == pygame.K_r:
-                    points = []
-                    speeds = []
-                if event.key == pygame.K_p:
-                    pause = not pause
-                if event.key == pygame.K_KP_PLUS:
-                    steps += 1
-                if event.key == pygame.K_F1:
-                    show_help = not show_help
-
-                if event.key == pygame.K_KP_MINUS:
-                    steps -= 1 if steps > 1 else 0
-
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                gameDisplay.fill((0, 0, 0))
-
-                if event.button == 1:
-                    K.add_base_point(event.pos)
-
-                if event.button == 3 and pause:
-                    K.del_base_point(event.pos)
-
-                K.draw_points(gameDisplay)
-                K.get_knot()
-                K.draw_lines(gameDisplay, color)
-
-        if pause:
-            hue = (hue + 1) % 360
-            color.hsla = (hue, 100, 50, 100)
-            K.draw_lines(gameDisplay, color)
-        else:
-            gameDisplay.fill((0, 0, 0))
-            hue = (hue + 1) % 360
-            color.hsla = (hue, 100, 50, 100)
-            K.set_points()
-            K.draw_points(gameDisplay)
-            K.get_knot()
-            K.draw_lines(gameDisplay, color)
-
-        if show_help:
-            draw_help()
-
-        pygame.display.flip()
+    # sleep(10)
+    # steps = 35
+    # working = True
+    # points = []
+    # speeds = []
+    # show_help = False
+    # pause = True
+    # hue = 0
+    #
+    # pygame.init()
+    # gameDisplay = pygame.display.set_mode(SCREEN_DIM)
+    # pygame.display.set_caption("MyScreenSaver")
+    # color = pygame.Color(0)
+    #
+    # K = Knot()
+    # while working:
+    #
+    #     for event in pygame.event.get():
+    #         if event.type == pygame.QUIT:
+    #             working = False
+    #
+    #         if event.type == pygame.KEYDOWN:
+    #
+    #             if event.key == pygame.K_ESCAPE:
+    #                 working = False
+    #             if event.key == pygame.K_r:
+    #                 points = []
+    #                 speeds = []
+    #             if event.key == pygame.K_p:
+    #                 pause = not pause
+    #             if event.key == pygame.K_KP_PLUS:
+    #                 steps += 1
+    #             if event.key == pygame.K_F1:
+    #                 show_help = not show_help
+    #             if event.key == pygame.K_KP_MINUS:
+    #                 steps -= 1 if steps > 1 else 0
+    #
+    #         if event.type == pygame.MOUSEBUTTONDOWN:
+    #             gameDisplay.fill((0, 0, 0))
+    #
+    #             if event.button == 1:
+    #                 K.add_base_point(event.pos)
+    #
+    #             if event.button == 3 and pause:
+    #                 K.del_base_point(event.pos)
+    #
+    #             K.draw_points(gameDisplay)
+    #             K.get_knot()
+    #             K.draw_lines(gameDisplay, color)
+    #
+    #     if pause:
+    #         hue = (hue + 1) % 360
+    #         color.hsla = (hue, 100, 50, 100)
+    #         K.draw_lines(gameDisplay, color)
+    #     else:
+    #         gameDisplay.fill((0, 0, 0))
+    #         hue = (hue + 1) % 360
+    #         color.hsla = (hue, 100, 50, 100)
+    #         K.set_points()
+    #         K.draw_points(gameDisplay)
+    #         K.get_knot()
+    #         K.draw_lines(gameDisplay, color)
+    #
+    #     if show_help:
+    #         draw_help()
+    #         test()
+    #
+    #
+    #     pygame.display.flip()
 
     pygame.display.quit()
     pygame.quit()
