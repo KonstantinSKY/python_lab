@@ -104,7 +104,6 @@ class Knot(Polyline):
 
     def get_knot(self):
         bases = self.bases
-
         self.lines = []
 
         if len(self.bases) < 3:
@@ -188,8 +187,6 @@ class Game:
                     self._set_caption()
 
                 if event.key == pygame.K_c:
-                    self._set_caption()
-
                     self.work_idx = self.work_idx + 1 if self.work_idx < len(self.knots) - 1 else 0
                     self._set_caption()
 
@@ -208,7 +205,6 @@ class Game:
 
                 if event.button == 1:
                     self.knots[self.work_idx].add_base_point(event.pos)
-
                 if event.button == 3 and self.pause:
                     self.knots[self.work_idx].del_base_point(event.pos)
 
@@ -225,16 +221,14 @@ class Game:
         self.color.hsla = (self.hue, 100, 50, 100)
 
     def _stop(self):
-
+        self._colorize()
         for idx in range(len(self.knots)):
-            self._colorize()
             self.knots[idx].draw_lines(self.gameDisplay, self.color)
 
     def _run(self):
         self.gameDisplay.fill((0, 0, 0))
-
+        self._colorize()
         for idx in range(len(self.knots)):
-            self._colorize()
             self.knots[idx].set_points()
         self._draw()
 
@@ -279,7 +273,7 @@ class Game:
 if __name__ == "__main__":
     SCREEN_DIM = (800, 600)
     pygame.init()
-    game = Game(f"My Screen Saver. ")
+    game = Game("My Screen Saver")
     game.work()
     pygame.display.quit()
     pygame.quit()
