@@ -1,18 +1,18 @@
 from hero import *
-from deco import *
+#from deco import *
 # создаем героя
 hero = Hero()
-hero.get_stats()
+print(hero.get_stats())
 
+# # {'HP': s128, 'MP': 42, 'SP': 100, 'Strength': 15, 'Perception': 4, 'Endurance': 8, 'Charisma': 2, 'Intelligence': 3, 'Agility': 8, 'Luck': 1}
+print(hero.stats)
 # # {'HP': 128, 'MP': 42, 'SP': 100, 'Strength': 15, 'Perception': 4, 'Endurance': 8, 'Charisma': 2, 'Intelligence': 3, 'Agility': 8, 'Luck': 1}
-# hero.stats
-# # {'HP': 128, 'MP': 42, 'SP': 100, 'Strength': 15, 'Perception': 4, 'Endurance': 8, 'Charisma': 2, 'Intelligence': 3, 'Agility': 8, 'Luck': 1}
-# hero.get_negative_effects()
+print(hero.get_negative_effects())
 # # [ ]
-# hero.get_positive_effects()
+print(hero.get_positive_effects())
 # # [ ]
 # # накладываем эффект
-#
+
 # brs1 = Berserk(hero)
 # brs1.get_stats()
 # # {'HP': 178, 'MP': 42, 'SP': 100, 'Strength': 22, 'Perception': 1, 'Endurance': 15, 'Charisma': -1, 'Intelligence': 0, 'Agility': 15, 'Luck': 8}
